@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Temple, Offering } from './types';
-import { getTemples } from './api';
+import { Temple, Offering, Order } from './types';
+import { getTemples, createOrder } from './api';
 import { TempleSelector } from './components/offerings/TempleSelector';
 import { OfferingsList } from './components/offerings/OfferingsList';
 import { Cart } from './components/cart/Cart';
 import { OrderForm, OrderFormData } from './components/cart/OrderForm';
+import { OrderConfirmationModal } from './components/cart/OrderConfirmationModal';
 import { useCart } from './hooks/useCart';
 import { Flame, Info, ShoppingBag } from 'lucide-react';
 
@@ -13,6 +14,11 @@ export const App: React.FC = () => {
   const [selectedTempleId, setSelectedTempleId] = useState<string | null>(null);
   const [isLoadingTemples, setIsLoadingTemples] = useState<boolean>(true);
   const [templesError, setTemplesError] = useState<string | null>(null);
+
+  // Order submission state
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState<boolean>(false);
+  const [orderSubmissionError, setOrderSubmissionError] = useState<string | null>(null);
+  const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
 
   // Cart hook with localStorage persistence
   const {
@@ -56,14 +62,65 @@ export const App: React.FC = () => {
     addItem(offering);
   };
 
-  const handleOrderSubmit = (formData: OrderFormData) => {
+  const submittingRef = React.useRef<boolean>(false);
+
+  /**
+   * P3 Order Submission:
+   * - Submits order through mock API
+   * - Prevents duplicate submissions / double-clicks
+   * - Retains cart and form state on failure with retry capability
+   * - Empties cart and displays confirmation receipt on success
+   */
+  const handleOrderSubmit = async (formData: OrderFormData) => {
+    if (!selectedTempleId) {
+      alert('Please select a temple before placing your order.');
+      return;
+    }
     if (cartItems.length === 0) {
       alert('Please add at least one vazhipadu offering to your cart before proceeding.');
       return;
     }
-    // Form validated successfully - ready for P3 Order Confirmation
-    console.log('Order submitted for validation:', { formData, cartItems, totalAmount });
-    alert(`Order details validated successfully for ${formData.devoteeName}! Total: ₹${totalAmount}`);
+
+    // Synchronous double-click guard via ref
+    if (submittingRef.current || isSubmittingOrder) {
+      return;
+    }
+
+    submittingRef.current = true;
+    setIsSubmittingOrder(true);
+    setOrderSubmissionError(null);
+
+    try {
+      const createdOrder = await createOrder({
+        templeId: selectedTempleId,
+        devoteeName: formData.devoteeName,
+        phoneNumber: formData.phoneNumber,
+        nakshatra: formData.nakshatra,
+        date: formData.date,
+        items: cartItems.map((item) => ({
+          offeringId: item.offeringId,
+          quantity: item.quantity,
+        })),
+      });
+
+      // On Success: empty the cart and show confirmation modal
+      clearCart();
+      setConfirmedOrder(createdOrder);
+    } catch (err: unknown) {
+      // On Failure: cart and form values are kept intact
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Failed to place your order with the temple board. Please try again.';
+      setOrderSubmissionError(errorMessage);
+    } finally {
+      submittingRef.current = false;
+      setIsSubmittingOrder(false);
+    }
+  };
+
+  const handleCloseConfirmation = () => {
+    setConfirmedOrder(null);
   };
 
   return (
@@ -120,7 +177,7 @@ export const App: React.FC = () => {
 
         {/* 2-Column Responsive Layout: Offerings List on Left, Cart + Form on Right */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Column: Offerings List (7 cols on desktop) */}
+          {/* Left Column: Offerings List */}
           <section aria-labelledby="offerings-heading" className="lg:col-span-7 space-y-4">
             <div className="flex items-center justify-between">
               <h2 id="offerings-heading" className="text-base font-bold text-stone-800">
@@ -135,7 +192,7 @@ export const App: React.FC = () => {
             />
           </section>
 
-          {/* Right Column: Cart and Devotee Order Form (5 cols on desktop) */}
+          {/* Right Column: Cart and Devotee Order Form */}
           <section aria-label="Cart and Order Details" className="lg:col-span-5 space-y-5">
             {/* Cart Section */}
             <Cart
@@ -149,20 +206,29 @@ export const App: React.FC = () => {
             {/* Order Form Section */}
             <OrderForm
               onSubmit={handleOrderSubmit}
+              isSubmitting={isSubmittingOrder}
+              submissionError={orderSubmissionError}
+              onClearSubmissionError={() => setOrderSubmissionError(null)}
               disabled={cartItems.length === 0}
               submitButtonText={
                 cartItems.length === 0
                   ? 'Add Offerings to Continue'
-                  : `Proceed to Book (₹${totalAmount})`
+                  : `Place Order (₹${totalAmount})`
               }
             />
           </section>
         </div>
       </main>
 
+      {/* Order Confirmation Receipt Modal */}
+      <OrderConfirmationModal
+        order={confirmedOrder}
+        onClose={handleCloseConfirmation}
+      />
+
       {/* Footer */}
       <footer className="border-t border-stone-200 bg-white py-4 text-center text-xs text-stone-500">
-        © 2026 Travancore Devaswom Board (TDB) • Frontend Assessment (P2: Cart & Form)
+        © 2026 Travancore Devaswom Board (TDB) • Frontend Assessment (P3: Order Confirmation)
       </footer>
     </div>
   );
