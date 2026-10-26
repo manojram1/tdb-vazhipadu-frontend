@@ -17,6 +17,17 @@ export const CancelOrderModal: React.FC<CancelOrderModalProps> = ({
   onConfirm,
   onClose,
 }) => {
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isCancelling) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isCancelling, onClose]);
+
   if (!isOpen || !order) return null;
 
   return (
