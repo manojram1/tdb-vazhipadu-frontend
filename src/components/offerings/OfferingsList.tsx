@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Offering } from '../types';
-import { getOfferings } from '../api';
+import { Offering } from '../../types';
+import { getOfferings } from '../../api';
 import { OfferingSearch } from './OfferingSearch';
 import { OfferingCard } from './OfferingCard';
 import { AlertCircle, RefreshCw, Sparkles, Inbox } from 'lucide-react';

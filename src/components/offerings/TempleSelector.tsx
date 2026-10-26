@@ -1,5 +1,5 @@
 import React from 'react';
-import { Temple } from '../types';
+import { Temple } from '../../types';
 import { Landmark, AlertCircle, RefreshCw } from 'lucide-react';
 
 interface TempleSelectorProps {
