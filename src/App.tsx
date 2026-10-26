@@ -303,7 +303,7 @@ export const App: React.FC = () => {
 
       {/* Footer */}
       <footer className="border-t border-stone-200 bg-white py-4 text-center text-xs text-stone-500">
-        © 2026 Travancore Devaswom Board (TDB) • Frontend Assessment (P4: Staff Orders Registry)
+        © 2026 Travancore Devaswom Board (TDB) • Official Vazhipadu Portal
       </footer>
     </div>
   );
