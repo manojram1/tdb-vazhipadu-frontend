@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NAKSHATRAS } from '../../types';
-import { User, Phone, Star, Calendar, CheckCircle2 } from 'lucide-react';
+import { User, Phone, Star, Calendar, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 
 export interface OrderFormData {
   devoteeName: string;
@@ -17,10 +17,12 @@ export interface FormErrors {
 }
 
 interface OrderFormProps {
-  onSubmit: (formData: OrderFormData) => void;
+  onSubmit: (formData: OrderFormData) => Promise<void> | void;
   isSubmitting?: boolean;
   disabled?: boolean;
   submitButtonText?: string;
+  submissionError?: string | null;
+  onClearSubmissionError?: () => void;
 }
 
 export const OrderForm: React.FC<OrderFormProps> = ({
@@ -28,6 +30,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({
   isSubmitting = false,
   disabled = false,
   submitButtonText = 'Proceed to Book Offerings',
+  submissionError = null,
+  onClearSubmissionError,
 }) => {
   const [formData, setFormData] = useState<OrderFormData>({
     devoteeName: '',
@@ -103,8 +107,10 @@ export const OrderForm: React.FC<OrderFormProps> = ({
   };
 
   const handleChange = (field: keyof OrderFormData, value: string) => {
+    if (submissionError && onClearSubmissionError) {
+      onClearSubmissionError();
+    }
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // If field was already touched, validate on change
     if (touched[field]) {
       const error = validateField(field, value);
       setErrors((prev) => ({ ...prev, [field]: error }));
@@ -119,6 +125,10 @@ export const OrderForm: React.FC<OrderFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Double-click debounce check: if already submitting or disabled, strictly ignore
+    if (isSubmitting || disabled) {
+      return;
+    }
     if (validateForm()) {
       onSubmit(formData);
     }
@@ -141,6 +151,27 @@ export const OrderForm: React.FC<OrderFormProps> = ({
         </p>
       </div>
 
+      {/* Submission Error Banner with Retry */}
+      {submissionError && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          data-testid="order-submission-error"
+          className="bg-red-50 border border-red-200 rounded-lg p-3.5 text-xs text-red-800 flex items-start justify-between gap-2"
+        >
+          <div className="flex items-start space-x-2">
+            <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-semibold text-red-900">Order Placement Failed</p>
+              <p className="text-red-700 mt-0.5">{submissionError}</p>
+              <p className="text-[11px] text-red-600 mt-1 italic">
+                Your cart and form values are preserved. Tap below to retry.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Devotee Name */}
       <div>
         <label
@@ -157,6 +188,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({
             id="devoteeName"
             name="devoteeName"
             type="text"
+            disabled={isSubmitting}
             value={formData.devoteeName}
             onChange={(e) => handleChange('devoteeName', e.target.value)}
             onBlur={() => handleBlur('devoteeName')}
@@ -167,7 +199,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({
               errors.devoteeName
                 ? 'border-red-300 bg-red-50/30 focus:border-red-500 focus:ring-red-200'
                 : 'border-stone-300 bg-white focus:border-amber-500 focus:ring-amber-200'
-            }`}
+            } ${isSubmitting ? 'bg-stone-100 cursor-not-allowed text-stone-500' : ''}`}
           />
         </div>
         {errors.devoteeName && (
@@ -199,6 +231,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({
             name="phoneNumber"
             type="tel"
             maxLength={10}
+            disabled={isSubmitting}
             value={formData.phoneNumber}
             onChange={(e) => handleChange('phoneNumber', e.target.value)}
             onBlur={() => handleBlur('phoneNumber')}
@@ -209,7 +242,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({
               errors.phoneNumber
                 ? 'border-red-300 bg-red-50/30 focus:border-red-500 focus:ring-red-200'
                 : 'border-stone-300 bg-white focus:border-amber-500 focus:ring-amber-200'
-            }`}
+            } ${isSubmitting ? 'bg-stone-100 cursor-not-allowed text-stone-500' : ''}`}
           />
         </div>
         {errors.phoneNumber && (
@@ -239,6 +272,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({
           <select
             id="nakshatra"
             name="nakshatra"
+            disabled={isSubmitting}
             value={formData.nakshatra}
             onChange={(e) => handleChange('nakshatra', e.target.value)}
             onBlur={() => handleBlur('nakshatra')}
@@ -248,7 +282,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({
               errors.nakshatra
                 ? 'border-red-300 bg-red-50/30 focus:border-red-500 focus:ring-red-200'
                 : 'border-stone-300 focus:border-amber-500 focus:ring-amber-200'
-            }`}
+            } ${isSubmitting ? 'bg-stone-100 cursor-not-allowed text-stone-500' : ''}`}
           >
             <option value="">-- Choose one of the 27 Nakshatras --</option>
             {NAKSHATRAS.map((star) => (
@@ -287,6 +321,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({
             name="date"
             type="date"
             min={todayStr}
+            disabled={isSubmitting}
             value={formData.date}
             onChange={(e) => handleChange('date', e.target.value)}
             onBlur={() => handleBlur('date')}
@@ -296,7 +331,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({
               errors.date
                 ? 'border-red-300 bg-red-50/30 focus:border-red-500 focus:ring-red-200'
                 : 'border-stone-300 focus:border-amber-500 focus:ring-amber-200'
-            }`}
+            } ${isSubmitting ? 'bg-stone-100 cursor-not-allowed text-stone-500' : ''}`}
           />
         </div>
         {errors.date && (
@@ -311,9 +346,10 @@ export const OrderForm: React.FC<OrderFormProps> = ({
         )}
       </div>
 
-      {/* Submit Button */}
+      {/* Submit Button with Double-Click Protection & Spinner */}
       <button
         type="submit"
+        data-testid="place-order-button"
         disabled={disabled || isSubmitting}
         className={`w-full py-2.5 px-4 rounded-lg font-semibold text-sm text-white shadow-sm transition-all flex items-center justify-center space-x-2 ${
           disabled || isSubmitting
@@ -321,8 +357,17 @@ export const OrderForm: React.FC<OrderFormProps> = ({
             : 'bg-amber-700 hover:bg-amber-800 active:bg-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500'
         }`}
       >
-        <CheckCircle2 className="w-4 h-4" />
-        <span>{isSubmitting ? 'Processing Order...' : submitButtonText}</span>
+        {isSubmitting ? (
+          <>
+            <RefreshCw className="w-4 h-4 animate-spin text-stone-500" />
+            <span>Connecting to Temple Server...</span>
+          </>
+        ) : (
+          <>
+            <CheckCircle2 className="w-4 h-4" />
+            <span>{submitButtonText}</span>
+          </>
+        )}
       </button>
     </form>
   );
