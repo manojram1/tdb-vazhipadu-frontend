@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NAKSHATRAS } from '../types';
+import { NAKSHATRAS } from '../../types';
 import { User, Phone, Star, Calendar, CheckCircle2 } from 'lucide-react';
 
 export interface OrderFormData {

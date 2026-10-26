@@ -1,5 +1,5 @@
 import React from 'react';
-import { CartItem } from '../hooks/useCart';
+import { CartItem } from '../../hooks/useCart';
 import { ShoppingBag, Plus, Minus, Trash2 } from 'lucide-react';
 
 interface CartProps {

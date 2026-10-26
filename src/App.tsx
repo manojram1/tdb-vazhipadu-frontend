@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Temple, Offering } from './types';
 import { getTemples } from './api';
-import { TempleSelector } from './components/TempleSelector';
-import { OfferingsList } from './components/OfferingsList';
-import { Cart } from './components/Cart';
-import { OrderForm, OrderFormData } from './components/OrderForm';
+import { TempleSelector } from './components/offerings/TempleSelector';
+import { OfferingsList } from './components/offerings/OfferingsList';
+import { Cart } from './components/cart/Cart';
+import { OrderForm, OrderFormData } from './components/cart/OrderForm';
 import { useCart } from './hooks/useCart';
 import { Flame, Info, ShoppingBag } from 'lucide-react';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Offering } from '../types';
+import { Offering } from '../../types';
 import { Sparkles, Plus } from 'lucide-react';
 
 interface OfferingCardProps {

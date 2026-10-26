@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { OfferingsList } from './OfferingsList';
-import * as api from '../api';
-import { Offering } from '../types';
+import * as api from '../../api';
+import { Offering } from '../../types';
 
 const mockOfferings: Offering[] = [
   {

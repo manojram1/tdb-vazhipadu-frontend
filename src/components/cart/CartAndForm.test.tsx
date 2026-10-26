@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Cart } from './Cart';
 import { OrderForm } from './OrderForm';
-import { CartItem } from '../hooks/useCart';
+import { CartItem } from '../../hooks/useCart';
 
 describe('Offering Cart and Order Form (P2)', () => {
   beforeEach(() => {
