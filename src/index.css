@@ -7,8 +7,33 @@
   color-scheme: light;
 }
 
+/* Ensure no horizontal scrolling on 360px viewports (P5 Requirement) */
+html,
 body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   min-width: 320px;
-  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Visible high-contrast focus rings for keyboard navigation (P5 Requirement) */
+:focus-visible {
+  outline: 2px solid #b45309;
+  outline-offset: 2px;
+}
+
+/* Screen reader only utility class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
